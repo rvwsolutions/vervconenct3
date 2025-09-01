@@ -126,7 +126,8 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
     occupiedRooms: rooms.filter(r => r.status === 'occupied').length,
     dirtyRooms: rooms.filter(r => r.status === 'dirty').length,
     cleanRooms: rooms.filter(r => r.status === 'clean').length,
-    maintenanceRooms: rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order').length,
+    maintenanceRooms: rooms.filter(r => r.status === 'maintenance').length,
+    outOfOrderRooms: rooms.filter(r => r.status === 'out-of-order').length,
     todayCheckIns: todayCheckIns.length,
     todayCheckOuts: todayCheckOuts.length,
     activeBanquets: banquetBookings.filter(b => b.date === today).length,
@@ -138,7 +139,7 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
   };
 
   const occupancyRate = stats.totalRooms > 0 ? ((stats.occupiedRooms / stats.totalRooms) * 100).toFixed(1) : '0.0';
-  const availableRooms = stats.totalRooms - stats.occupiedRooms - stats.maintenanceRooms;
+  const availableRooms = stats.totalRooms - stats.occupiedRooms - stats.maintenanceRooms - stats.outOfOrderRooms;
 
   const getGreeting = () => {
     const currentTime = getCurrentTime();
