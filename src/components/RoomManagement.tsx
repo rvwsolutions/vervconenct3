@@ -97,6 +97,16 @@ export function RoomManagement({ onClose }: RoomManagementProps) {
   // Get unique floors for filtering
   const floors = [...new Set(rooms.map(room => room.floor).filter(Boolean))].sort((a, b) => (a || 0) - (b || 0));
 
+  // Calculate room statistics
+  const stats = {
+    total: rooms.length,
+    clean: rooms.filter(r => r.status === 'clean').length,
+    dirty: rooms.filter(r => r.status === 'dirty').length,
+    occupied: rooms.filter(r => r.status === 'occupied').length,
+    maintenance: rooms.filter(r => r.status === 'maintenance').length,
+    outOfOrder: rooms.filter(r => r.status === 'out-of-order').length
+  };
+
   // Filter rooms based on search and filters
   const filteredRooms = rooms.filter(room => {
     const matchesSearch = !searchTerm || 
@@ -918,24 +928,24 @@ export function RoomManagement({ onClose }: RoomManagementProps) {
       {/* Room Status Summary */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-2xl font-bold text-gray-900">{rooms.length}</div>
+          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
           <div className="text-sm text-gray-600">Total Rooms</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-2xl font-bold text-green-600">{rooms.filter(r => r.status === 'clean').length}</div>
+          <div className="text-2xl font-bold text-green-600">{stats.clean}</div>
           <div className="text-sm text-gray-600">Clean</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600">{rooms.filter(r => r.status === 'dirty').length}</div>
+          <div className="text-2xl font-bold text-orange-600">{stats.dirty}</div>
           <div className="text-sm text-gray-600">Dirty</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600">{rooms.filter(r => r.status === 'occupied').length}</div>
+          <div className="text-2xl font-bold text-blue-600">{stats.occupied}</div>
           <div className="text-sm text-gray-600">Occupied</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
           <div className="text-2xl font-bold text-red-600">
-            {rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order').length}
+            {stats.maintenance + stats.outOfOrder}
           </div>
           <div className="text-sm text-gray-600">Maintenance</div>
         </div>
