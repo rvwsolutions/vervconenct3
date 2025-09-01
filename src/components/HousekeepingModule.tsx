@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHotel } from '../context/HotelContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { CheckCircle, Clock, AlertCircle, Bed, User, Receipt, X } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, Bed, User, Receipt, X, Wrench } from 'lucide-react';
 import { Room } from '../types';
 
 interface HousekeepingModuleProps {
@@ -20,7 +20,7 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
   } = useHotel();
   const { formatCurrency, hotelSettings } = useCurrency();
   
-  const [filter, setFilter] = useState<'all' | 'dirty' | 'checkout'>('all');
+  const [filter, setFilter] = useState<'all' | 'dirty' | 'checkout' | 'maintenance'>('all');
   const [showChargeForm, setShowChargeForm] = useState(false);
 
   // Apply filters from dashboard navigation
@@ -41,8 +41,15 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
         return rooms.filter(r => r.status === 'dirty');
       case 'checkout':
         return rooms.filter(r => checkoutRooms.includes(r.id));
+      case 'maintenance':
+        return rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order');
       default:
-        return rooms.filter(r => r.status === 'dirty' || checkoutRooms.includes(r.id));
+        return rooms.filter(r => 
+          r.status === 'dirty' || 
+          checkoutRooms.includes(r.id) || 
+          r.status === 'maintenance' || 
+          r.status === 'out-of-order'
+        );
     }
   };
 
@@ -50,9 +57,18 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
   const cleanRooms = rooms.filter(r => r.status === 'clean').length;
   const dirtyRooms = rooms.filter(r => r.status === 'dirty').length;
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
+  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order').length;
 
   const handleMarkAsClean = (roomId: string) => {
     updateRoomStatus(roomId, 'clean');
+  };
+
+  const handleMarkForMaintenance = (roomId: string) => {
+    updateRoomStatus(roomId, 'maintenance');
+  };
+
+  const handleMarkOutOfOrder = (roomId: string) => {
+    updateRoomStatus(roomId, 'out-of-order');
   };
 
   const getStatusIcon = (status: Room['status']) => {
@@ -63,6 +79,10 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'occupied':
         return <User className="w-5 h-5 text-blue-500" />;
+      case 'maintenance':
+        return <Clock className="w-5 h-5 text-red-500" />;
+      case 'out-of-order':
+        return <Wrench className="w-5 h-5 text-red-600" />;
       default:
         return <Clock className="w-5 h-5 text-gray-500" />;
     }
@@ -298,6 +318,18 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Maintenance</p>
+              <p className="text-3xl font-bold text-red-600">{maintenanceRooms}</p>
+            </div>
+            <div className="p-3 bg-red-100 rounded-lg">
+              <Wrench className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -307,7 +339,8 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
             {[
               { id: 'all', name: 'All Tasks', count: roomsToClean.length },
               { id: 'dirty', name: 'Dirty Rooms', count: dirtyRooms },
-              { id: 'checkout', name: 'Checkouts Today', count: bookings.filter(b => b.checkOut === new Date().toISOString().split('T')[0]).length }
+              { id: 'checkout', name: 'Checkouts Today', count: bookings.filter(b => b.checkOut === new Date().toISOString().split('T')[0]).length },
+              { id: 'maintenance', name: 'Maintenance', count: maintenanceRooms }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -382,13 +415,50 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
                       </div>
                     )}
                     
-                    <button
-                      onClick={() => handleMarkAsClean(room.id)}
-                      className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      <span>Mark as Clean</span>
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      {room.status === 'maintenance' || room.status === 'out-of-order' ? (
+                        <>
+                          <button
+                            onClick={() => handleMarkAsClean(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Mark as Clean</span>
+                          </button>
+                          <button
+                            onClick={() => handleMarkForMaintenance(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span>Maintenance</span>
+                          </button>
+                          <button
+                            onClick={() => handleMarkOutOfOrder(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                          >
+                            <X className="w-4 h-4" />
+                            <span>Out of Order</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleMarkAsClean(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Mark as Clean</span>
+                          </button>
+                          <button
+                            onClick={() => handleMarkForMaintenance(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
+                          >
+                            <Clock className="w-4 h-4" />
+                            <span>Needs Maintenance</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
