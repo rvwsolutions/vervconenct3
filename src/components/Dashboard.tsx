@@ -350,6 +350,15 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
               icon: Users,
               color: 'purple',
               onClick: () => onModuleChange('admin')
+            },
+            {
+              title: 'Out of Order',
+              value: stats.outOfOrderRooms,
+              subtitle: `rooms completely unavailable`,
+              icon: X,
+              color: 'red',
+              onClick: () => onModuleChange('housekeeping', { filter: 'out-of-order' }),
+              urgent: stats.outOfOrderRooms > 0
             }
           ]
         };
@@ -571,8 +580,8 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
       )}
 
       {/* Role-specific Primary Stats - Arranged in 2x2 grid for desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
-        {roleContent.primaryStats.slice(0, 4).map((stat, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+        {roleContent.primaryStats.map((stat, index) => (
           <ClickableCard
             key={index}
             title={stat.title}
@@ -919,6 +928,18 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
                     <strong>{stats.dirtyRooms}</strong> room{stats.dirtyRooms !== 1 ? 's' : ''} need{stats.dirtyRooms === 1 ? 's' : ''} cleaning
                   </span>
                   <ArrowRight className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                </button>
+              )}
+              {stats.outOfOrderRooms > 0 && (
+                <button
+                  onClick={() => onModuleChange('housekeeping', { filter: 'out-of-order' })}
+                  className="w-full flex items-center space-x-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors touch-manipulation active:bg-red-200"
+                >
+                  <X className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <span className="text-sm text-red-800 flex-1 text-left">
+                    <strong>{stats.outOfOrderRooms}</strong> room{stats.outOfOrderRooms !== 1 ? 's' : ''} out of order
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-red-600 flex-shrink-0" />
                 </button>
               )}
             </>
