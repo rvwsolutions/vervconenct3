@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHotel } from '../context/HotelContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useBranding } from '../context/BrandingContext';
 import { useAuth } from '../context/AuthContext';
 import { useFinancial } from '../context/FinancialContext';
 import { RoomManagement } from './RoomManagement';
