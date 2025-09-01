@@ -75,7 +75,6 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
     addBooking, 
     updateBookingStatus, 
     addRoomCharge, 
-    addRoomCharge,
     groupBookings,
     getUpcomingGroupBookings,
     updateGuest 
