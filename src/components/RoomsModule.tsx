@@ -35,7 +35,7 @@ import {
   Coffee, 
   Wrench,
   Users,
-  Heart
+  Heart,
   Tv, 
   Wind, 
   Droplets, 
@@ -77,7 +77,7 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
     addRoomCharge, 
     addRoomCharge,
     groupBookings,
-    getUpcomingGroupBookings
+    getUpcomingGroupBookings,
     updateGuest 
   } = useHotel();
   const { formatCurrency, hotelSettings } = useCurrency();
@@ -2399,8 +2399,7 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
             <button
               onClick={() => setView('rooms')}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-              { id: 'rooms', name: 'Room Management', icon: Settings },
-              { id: 'group-bookings', name: 'Group Bookings', icon: Users, badge: getUpcomingGroupBookings(7).length }
+                view === 'rooms'
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -2416,13 +2415,24 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-                  {tab.badge && tab.badge > 0 && (
-                    <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
-                      {tab.badge}
-                    </span>
-                  )}
               <Calendar className="w-5 h-5" />
               <span>Bookings</span>
+            </button>
+            <button
+              onClick={() => setView('group-bookings')}
+              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                view === 'group-bookings'
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              <span>Group Bookings</span>
+              {getUpcomingGroupBookings(7).length > 0 && (
+                <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
+                  {getUpcomingGroupBookings(7).length}
+                </span>
+              )}
             </button>
           </nav>
         </div>
@@ -2893,7 +2903,174 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
         </div>
       )}
 
+      {/* Group Bookings View */}
+      {view === 'group-bookings' && (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Group Bookings</h3>
+              <p className="text-gray-600">Manage large group reservations and room allocations</p>
+            </div>
+            <button
+              onClick={() => setShowGroupBookingManagement(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Group Booking</span>
+            </button>
+          </div>
+
+          {/* Group Booking Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Group Bookings</p>
+                  <p className="text-3xl font-bold text-indigo-600">{groupBookings.length}</p>
+                </div>
+                <Heart className="w-8 h-8 text-indigo-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Arriving Today</p>
+                  <p className="text-3xl font-bold text-green-600">{stats.todayGroupArrivals}</p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Upcoming (30 days)</p>
+                  <p className="text-3xl font-bold text-blue-600">{stats.upcomingGroupBookings}</p>
+                </div>
+                <Calendar className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Guests</p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {groupBookings.reduce((sum, gb) => sum + gb.totalGuests, 0)}
+                  </p>
+                </div>
+                <Users className="w-8 h-8 text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          {/* Group Bookings List */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-6 border-b border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-900">All Group Bookings</h4>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Group</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guests</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rooms</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {groupBookings.map((groupBooking) => (
+                    <tr key={groupBooking.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{groupBooking.groupName}</div>
+                          <div className="text-sm text-gray-500">{groupBooking.contactPerson}</div>
+                          {groupBooking.blockCode && (
+                            <div className="text-xs text-gray-400">{groupBooking.blockCode}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {groupBooking.groupType === 'pilgrimage' && <Heart className="w-4 h-4 text-purple-500" />}
+                          {groupBooking.groupType === 'corporate' && <Building className="w-4 h-4 text-blue-500" />}
+                          {groupBooking.groupType === 'conference' && <FileText className="w-4 h-4 text-green-500" />}
+                          <span className="text-sm text-gray-900 capitalize">{groupBooking.groupType}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {groupBooking.totalGuests}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {formatDate(groupBooking.checkIn)}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          to {formatDate(groupBooking.checkOut)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {groupBooking.roomAllocation.length} allocated
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          of {groupBooking.totalRooms} needed
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatCurrency(groupBooking.totalAmount, groupBooking.currency)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          groupBooking.status === 'inquiry' ? 'bg-gray-100 text-gray-800' :
+                          groupBooking.status === 'quoted' ? 'bg-blue-100 text-blue-800' :
+                          groupBooking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {groupBooking.status.charAt(0).toUpperCase() + groupBooking.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => setShowGroupBookingManagement(true)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {groupBookings.length === 0 && (
+              <div className="p-12 text-center">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">No Group Bookings</h4>
+                <p className="text-gray-600 mb-6">Create your first group booking for large parties</p>
+                <button
+                  onClick={() => setShowGroupBookingManagement(true)}
+                  className="flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 mx-auto"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Create Group Booking</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showRoomManagement && <RoomManagement onClose={() => setShowRoomManagement(false)} />}
+      {showGroupBookingManagement && <GroupBookingManagement onClose={() => setShowGroupBookingManagement(false)} />}
       {showBookingForm && <BookingForm />}
       {showCheckInForm && <CheckInForm />}
       {showGuestForm && <GuestForm />}
