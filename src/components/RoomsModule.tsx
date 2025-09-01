@@ -79,6 +79,16 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
     getUpcomingGroupBookings,
     updateGuest 
   } = useHotel();
+  
+  // Calculate room statistics
+  const stats = {
+    total: rooms.length,
+    clean: rooms.filter(r => r.status === 'clean').length,
+    dirty: rooms.filter(r => r.status === 'dirty').length,
+    occupied: rooms.filter(r => r.status === 'occupied').length,
+    maintenance: rooms.filter(r => r.status === 'maintenance').length,
+    outOfOrder: rooms.filter(r => r.status === 'out-of-order').length
+  };
   const { formatCurrency, hotelSettings } = useCurrency();
   const { user } = useAuth();
   const { generateInvoiceFromBooking } = useFinancial();
