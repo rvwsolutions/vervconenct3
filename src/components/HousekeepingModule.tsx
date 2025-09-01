@@ -20,7 +20,7 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
   } = useHotel();
   const { formatCurrency, hotelSettings } = useCurrency();
   
-  const [filter, setFilter] = useState<'all' | 'dirty' | 'checkout' | 'maintenance'>('all');
+  const [filter, setFilter] = useState<'all' | 'dirty' | 'checkout' | 'maintenance' | 'out-of-order'>('all');
   const [showChargeForm, setShowChargeForm] = useState(false);
 
   // Apply filters from dashboard navigation
@@ -43,6 +43,8 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
         return rooms.filter(r => checkoutRooms.includes(r.id));
       case 'maintenance':
         return rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order');
+      case 'out-of-order':
+        return rooms.filter(r => r.status === 'out-of-order');
       default:
         return rooms.filter(r => 
           r.status === 'dirty' || 
@@ -57,7 +59,8 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
   const cleanRooms = rooms.filter(r => r.status === 'clean').length;
   const dirtyRooms = rooms.filter(r => r.status === 'dirty').length;
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length;
-  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance' || r.status === 'out-of-order').length;
+  const maintenanceRooms = rooms.filter(r => r.status === 'maintenance').length;
+  const outOfOrderRooms = rooms.filter(r => r.status === 'out-of-order').length;
 
   const handleMarkAsClean = (roomId: string) => {
     updateRoomStatus(roomId, 'clean');
@@ -270,7 +273,7 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -330,6 +333,18 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Out of Order</p>
+              <p className="text-3xl font-bold text-gray-600">{outOfOrderRooms}</p>
+            </div>
+            <div className="p-3 bg-gray-100 rounded-lg">
+              <X className="w-6 h-6 text-gray-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -340,7 +355,8 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
               { id: 'all', name: 'All Tasks', count: roomsToClean.length },
               { id: 'dirty', name: 'Dirty Rooms', count: dirtyRooms },
               { id: 'checkout', name: 'Checkouts Today', count: bookings.filter(b => b.checkOut === new Date().toISOString().split('T')[0]).length },
-              { id: 'maintenance', name: 'Maintenance', count: maintenanceRooms }
+              { id: 'maintenance', name: 'Maintenance', count: maintenanceRooms },
+              { id: 'out-of-order', name: 'Out of Order', count: outOfOrderRooms }
             ].map((tab) => (
               <button
                 key={tab.id}
