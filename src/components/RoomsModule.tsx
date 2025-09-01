@@ -92,7 +92,7 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
   const { formatCurrency, hotelSettings } = useCurrency();
   const { user } = useAuth();
   const { generateInvoiceFromBooking } = useFinancial();
-  
+  const { formatDateTime, formatDate } = useBranding();
   const [view, setView] = useState<'overview' | 'bookings' | 'rooms' | 'group-bookings'>('overview');
   const [showRoomManagement, setShowRoomManagement] = useState(false);
   const [showGroupBookingManagement, setShowGroupBookingManagement] = useState(false);
