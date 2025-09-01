@@ -764,6 +764,59 @@ export interface GroupBooking {
   notes?: string;
   createdAt: string;
   modifiedAt?: string;
+  // Enhanced group booking fields
+  totalGuests: number;
+  guestList?: Array<{
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    roomPreference?: string;
+    specialRequests?: string[];
+    assignedRoomId?: string;
+  }>;
+  roomAllocation: Array<{
+    roomId: string;
+    roomNumber: string;
+    roomType: string;
+    maxOccupancy: number;
+    assignedGuests: number;
+    guestNames: string[];
+  }>;
+  groupType: 'pilgrimage' | 'corporate' | 'wedding' | 'conference' | 'tour' | 'family' | 'other';
+  totalAmount: number;
+  currency: string;
+  depositAmount?: number;
+  depositPaid?: boolean;
+  paymentSchedule?: Array<{
+    dueDate: string;
+    amount: number;
+    description: string;
+    paid: boolean;
+  }>;
+  specialServices?: string[];
+  mealPlan?: 'none' | 'breakfast' | 'half-board' | 'full-board' | 'all-inclusive';
+  transportationDetails?: {
+    airportPickup: boolean;
+    localTransport: boolean;
+    specialArrangements?: string;
+  };
+  groupLeader?: {
+    name: string;
+    email: string;
+    phone: string;
+    roomNumber?: string;
+  };
+  emergencyContact?: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  documentsRequired?: string[];
+  visaAssistance?: boolean;
+  languageSupport?: string[];
+  culturalRequirements?: string[];
+  religiousRequirements?: string[];
 }
 
 export interface PackageDeal {

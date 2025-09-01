@@ -4,6 +4,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useAuth } from '../context/AuthContext';
 import { useFinancial } from '../context/FinancialContext';
 import { RoomManagement } from './RoomManagement';
+import { GroupBookingManagement } from './GroupBookingManagement';
 import { BillGenerator } from './BillGenerator';
 import { 
   Bed, 
@@ -32,7 +33,9 @@ import {
   Home, 
   Maximize, 
   Coffee, 
-  Wifi, 
+  Wrench,
+  Users,
+  Heart
   Tv, 
   Wind, 
   Droplets, 
@@ -72,15 +75,18 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
     addBooking, 
     updateBookingStatus, 
     addRoomCharge, 
-    addGuest, 
+    addRoomCharge,
+    groupBookings,
+    getUpcomingGroupBookings
     updateGuest 
   } = useHotel();
   const { formatCurrency, hotelSettings } = useCurrency();
   const { user } = useAuth();
   const { generateInvoiceFromBooking } = useFinancial();
   
-  const [view, setView] = useState<'rooms' | 'bookings'>('rooms');
+  const [view, setView] = useState<'overview' | 'bookings' | 'rooms' | 'group-bookings'>('overview');
   const [showRoomManagement, setShowRoomManagement] = useState(false);
+  const [showGroupBookingManagement, setShowGroupBookingManagement] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [showCheckInForm, setShowCheckInForm] = useState(false);
   const [showGuestForm, setShowGuestForm] = useState(false);
@@ -120,6 +126,12 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
       }
       if (filters.action === 'new-booking') {
         setShowBookingForm(true);
+      }
+      if (filters.view === 'group-bookings') {
+        setView('group-bookings');
+        if (filters.filter === 'arriving-today') {
+          // Could add specific filtering for today's group arrivals
+        }
       }
       if (filters.action === 'check-in') {
         setView('bookings');
@@ -2387,7 +2399,8 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
             <button
               onClick={() => setView('rooms')}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
-                view === 'rooms'
+              { id: 'rooms', name: 'Room Management', icon: Settings },
+              { id: 'group-bookings', name: 'Group Bookings', icon: Users, badge: getUpcomingGroupBookings(7).length }
                   ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -2403,6 +2416,11 @@ export function RoomsModule({ filters }: RoomsModuleProps) {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
+                  {tab.badge && tab.badge > 0 && (
+                    <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">
+                      {tab.badge}
+                    </span>
+                  )}
               <Calendar className="w-5 h-5" />
               <span>Bookings</span>
             </button>

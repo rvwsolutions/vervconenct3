@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useHotel } from '../context/HotelContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useBranding } from '../context/BrandingContext';
-import { Bed, Users, Calendar, UtensilsCrossed, Coins, TrendingUp, Clock, CheckCircle, ArrowRight, AlertCircle, Plus, Eye, Home, Wrench, Sparkles, UserCheck, LogIn, LogOut, User, Phone, Mail, MapPin, Star, Timer, UserX, Check as CheckIn, Check as CheckOut, ChevronDown, X } from 'lucide-react';
+import { Bed, Users, Calendar, UtensilsCrossed, Coins, TrendingUp, Clock, CheckCircle, ArrowRight, AlertCircle, Plus, Eye, Home, Wrench, Sparkles, UserCheck, LogIn, LogOut, User, Phone, Mail, MapPin, Star, Timer, UserX, Check as CheckIn, Check as CheckOut, ChevronDown, X, Heart, Building } from 'lucide-react';
 
 interface DashboardProps {
   onModuleChange: (module: string, filter?: any) => void;
@@ -11,7 +11,7 @@ interface DashboardProps {
 
 export function Dashboard({ onModuleChange }: DashboardProps) {
   const { user, getEmployeesOnShift } = useAuth();
-  const { rooms, bookings, banquetBookings, restaurantTables, roomServiceOrders, guests } = useHotel();
+  const { rooms, bookings, banquetBookings, restaurantTables, roomServiceOrders, guests, groupBookings, getUpcomingGroupBookings } = useHotel();
   const { formatCurrency, hotelSettings, convertAmount, getCurrencySymbol } = useCurrency();
   const { branding, formatDateTime, formatTime, getCurrentDate, getCurrentTime } = useBranding();
   
@@ -23,6 +23,10 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
   // Get today's check-ins and check-outs with detailed information
   const todayCheckIns = bookings.filter(b => b.checkIn === today);
   const todayCheckOuts = bookings.filter(b => b.checkOut === today);
+
+  // Get upcoming group bookings (next 30 days)
+  const upcomingGroupBookings = getUpcomingGroupBookings(30);
+  const todayGroupArrivals = groupBookings.filter(gb => gb.checkIn === today && gb.status === 'confirmed');
 
   // Get probable check-ins (confirmed bookings for today)
   const probableCheckIns = todayCheckIns.map(booking => {
@@ -134,6 +138,8 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
     availableTables: restaurantTables.filter(t => t.status === 'available').length,
     occupiedTables: restaurantTables.filter(t => t.status === 'occupied').length,
     pendingRoomService: roomServiceOrders.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status)).length,
+    upcomingGroupBookings: upcomingGroupBookings.length,
+    todayGroupArrivals: todayGroupArrivals.length,
     todayRevenue,
     monthRevenue
   };
@@ -350,6 +356,15 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
               icon: Users,
               color: 'purple',
               onClick: () => onModuleChange('admin')
+            },
+            {
+              title: "Group Bookings",
+              value: stats.upcomingGroupBookings,
+              subtitle: `${stats.todayGroupArrivals} arriving today`,
+              icon: Heart,
+              color: "pink",
+              onClick: () => onModuleChange('rooms', { view: 'group-bookings' }),
+              urgent: stats.todayGroupArrivals > 0
             }
           ]
         };
@@ -921,6 +936,30 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
                   <ArrowRight className="w-4 h-4 text-yellow-600 flex-shrink-0" />
                 </button>
               )}
+              {stats.todayGroupArrivals > 0 && (
+                <button
+                  onClick={() => onModuleChange('rooms', { view: 'group-bookings', filter: 'arriving-today' })}
+                  className="w-full flex items-center space-x-3 p-3 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors touch-manipulation active:bg-pink-200"
+                >
+                  <Heart className="w-5 h-5 text-pink-600 flex-shrink-0" />
+                  <span className="text-sm text-pink-800 flex-1 text-left">
+                    <strong>{stats.todayGroupArrivals}</strong> group booking{stats.todayGroupArrivals !== 1 ? 's' : ''} arriving today
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-pink-600 flex-shrink-0" />
+                </button>
+              )}
+              {stats.upcomingGroupBookings > 0 && stats.todayGroupArrivals === 0 && (
+                <button
+                  onClick={() => onModuleChange('rooms', { view: 'group-bookings' })}
+                  className="w-full flex items-center space-x-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors touch-manipulation active:bg-purple-200"
+                >
+                  <Building className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                  <span className="text-sm text-purple-800 flex-1 text-left">
+                    <strong>{stats.upcomingGroupBookings}</strong> group booking{stats.upcomingGroupBookings !== 1 ? 's' : ''} upcoming
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                </button>
+              )}
             </>
           )}
           
@@ -929,7 +968,7 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
             (user?.role === 'restaurant' && stats.pendingRoomService === 0 && stats.occupiedTables === 0) ||
             (user?.role !== 'housekeeping' && user?.role !== 'restaurant' && 
              stats.todayCheckIns === 0 && stats.todayCheckOuts === 0 && stats.activeBanquets === 0 && 
-             stats.pendingRoomService === 0 && stats.dirtyRooms === 0)) && (
+             stats.pendingRoomService === 0 && stats.dirtyRooms === 0 && stats.todayGroupArrivals === 0)) && (
             <div className="text-center py-8">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
               <p className="text-gray-500">All caught up! No urgent tasks for today.</p>

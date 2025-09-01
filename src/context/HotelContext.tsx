@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Room, Guest, Booking, BanquetHall, BanquetBooking, RestaurantTable, TableReservation, RoomCharge, RoomServiceOrder, BanquetAmenity } from '../types';
+import { Room, Guest, Booking, BanquetHall, BanquetBooking, RestaurantTable, TableReservation, RoomCharge, RoomServiceOrder, BanquetAmenity, GroupBooking } from '../types';
 
 interface HotelContextType {
   // Rooms
@@ -19,6 +19,15 @@ interface HotelContextType {
   addBooking: (booking: Omit<Booking, 'id' | 'charges'>) => void;
   updateBookingStatus: (bookingId: string, status: Booking['status']) => void;
   addRoomCharge: (bookingId: string, charge: Omit<RoomCharge, 'id'>) => void;
+  
+  // Group Bookings
+  groupBookings: GroupBooking[];
+  addGroupBooking: (groupBooking: Omit<GroupBooking, 'id' | 'createdAt' | 'roomAllocation'>) => void;
+  updateGroupBooking: (groupBookingId: string, updates: Partial<GroupBooking>) => void;
+  deleteGroupBooking: (groupBookingId: string) => void;
+  allocateRoomsForGroup: (groupBookingId: string) => void;
+  confirmGroupBooking: (groupBookingId: string) => void;
+  getUpcomingGroupBookings: (days?: number) => GroupBooking[];
   
   // Banquet
   banquetHalls: BanquetHall[];
@@ -801,10 +810,138 @@ const DEMO_TABLE_RESERVATIONS: TableReservation[] = [
   }
 ];
 
+// Demo Group Bookings
+const DEMO_GROUP_BOOKINGS: GroupBooking[] = [
+  {
+    id: '1',
+    groupName: 'Mecca Pilgrimage Group - Al-Noor Travel',
+    contactPerson: 'Ahmed Al-Rashid',
+    contactEmail: 'ahmed@alnoortravel.com',
+    contactPhone: '+966-50-123-4567',
+    totalRooms: 75,
+    totalGuests: 300,
+    checkIn: '2024-03-15',
+    checkOut: '2024-03-25',
+    status: 'confirmed',
+    groupType: 'pilgrimage',
+    totalAmount: 450000,
+    currency: 'SAR',
+    depositAmount: 135000,
+    depositPaid: true,
+    blockCode: 'MECCA2024-001',
+    roomsBlocked: [],
+    roomsBooked: [],
+    roomAllocation: [],
+    mealPlan: 'full-board',
+    transportationDetails: {
+      airportPickup: true,
+      localTransport: true,
+      specialArrangements: 'Bus transport to Haram, daily shuttle service'
+    },
+    groupLeader: {
+      name: 'Ahmed Al-Rashid',
+      email: 'ahmed@alnoortravel.com',
+      phone: '+966-50-123-4567'
+    },
+    emergencyContact: {
+      name: 'Dr. Fatima Al-Zahra',
+      phone: '+966-50-987-6543',
+      relationship: 'Group Medical Officer'
+    },
+    specialServices: ['Prayer time notifications', 'Halal meals', 'Qibla direction in rooms', 'Islamic cultural guide'],
+    religiousRequirements: ['Halal food only', 'Prayer facilities', 'Qibla direction', 'Separate prayer areas for men/women'],
+    languageSupport: ['Arabic', 'English', 'Urdu'],
+    documentsRequired: ['Passport', 'Visa', 'Vaccination certificate'],
+    visaAssistance: true,
+    paymentSchedule: [
+      {
+        dueDate: '2024-02-15',
+        amount: 135000,
+        description: 'Deposit (30%)',
+        paid: true
+      },
+      {
+        dueDate: '2024-03-01',
+        amount: 225000,
+        description: 'Second payment (50%)',
+        paid: false
+      },
+      {
+        dueDate: '2024-03-15',
+        amount: 90000,
+        description: 'Final payment (20%)',
+        paid: false
+      }
+    ],
+    contractTerms: 'Standard group booking terms with pilgrimage-specific clauses',
+    paymentTerms: '30% deposit, 50% 14 days before arrival, 20% on arrival',
+    cancellationPolicy: 'Free cancellation up to 30 days before arrival. 50% charge for 15-30 days, full charge for less than 15 days.',
+    amenitiesIncluded: ['Prayer mats', 'Qibla compass', 'Islamic calendar', 'Halal minibar'],
+    notes: 'Large pilgrimage group requiring special religious accommodations and services',
+    createdAt: '2024-01-15T10:00:00Z',
+    modifiedAt: '2024-01-20T14:30:00Z'
+  },
+  {
+    id: '2',
+    groupName: 'International Medical Conference 2024',
+    contactPerson: 'Dr. Sarah Johnson',
+    contactEmail: 'sarah.johnson@medconf2024.org',
+    contactPhone: '+1-555-0199',
+    totalRooms: 45,
+    totalGuests: 120,
+    checkIn: '2024-04-10',
+    checkOut: '2024-04-14',
+    status: 'confirmed',
+    groupType: 'conference',
+    totalAmount: 180000,
+    currency: 'USD',
+    depositAmount: 54000,
+    depositPaid: true,
+    blockCode: 'MEDCONF2024',
+    roomsBlocked: [],
+    roomsBooked: [],
+    roomAllocation: [],
+    mealPlan: 'breakfast',
+    transportationDetails: {
+      airportPickup: true,
+      localTransport: false
+    },
+    groupLeader: {
+      name: 'Dr. Sarah Johnson',
+      email: 'sarah.johnson@medconf2024.org',
+      phone: '+1-555-0199'
+    },
+    specialServices: ['Conference facilities', 'AV equipment', 'Business center access', 'High-speed internet'],
+    languageSupport: ['English', 'Spanish', 'French'],
+    documentsRequired: ['Passport', 'Conference registration'],
+    paymentSchedule: [
+      {
+        dueDate: '2024-02-10',
+        amount: 54000,
+        description: 'Deposit (30%)',
+        paid: true
+      },
+      {
+        dueDate: '2024-04-01',
+        amount: 126000,
+        description: 'Final payment (70%)',
+        paid: false
+      }
+    ],
+    contractTerms: 'Corporate group booking with conference facilities',
+    paymentTerms: '30% deposit, 70% 10 days before arrival',
+    cancellationPolicy: 'Free cancellation up to 21 days before arrival',
+    amenitiesIncluded: ['Business center access', 'Conference materials', 'Welcome reception'],
+    notes: 'Medical conference requiring meeting rooms and AV equipment',
+    createdAt: '2024-01-10T09:00:00Z'
+  }
+];
+
 export function HotelProvider({ children }: { children: ReactNode }) {
   const [rooms, setRooms] = useState<Room[]>(DEMO_ROOMS);
   const [guests, setGuests] = useState<Guest[]>(DEMO_GUESTS);
   const [bookings, setBookings] = useState<Booking[]>(DEMO_BOOKINGS);
+  const [groupBookings, setGroupBookings] = useState<GroupBooking[]>(DEMO_GROUP_BOOKINGS);
   const [banquetHalls, setBanquetHalls] = useState<BanquetHall[]>(DEMO_BANQUET_HALLS);
   const [banquetBookings, setBanquetBookings] = useState<BanquetBooking[]>(DEMO_BANQUET_BOOKINGS);
   const [banquetAmenities, setBanquetAmenities] = useState<BanquetAmenity[]>(DEMO_BANQUET_AMENITIES);
@@ -868,6 +1005,128 @@ export function HotelProvider({ children }: { children: ReactNode }) {
     ));
   };
 
+  // Group Booking Functions
+  const addGroupBooking = (groupBookingData: Omit<GroupBooking, 'id' | 'createdAt' | 'roomAllocation'>) => {
+    const newGroupBooking: GroupBooking = {
+      ...groupBookingData,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      roomAllocation: []
+    };
+    setGroupBookings(prev => [...prev, newGroupBooking]);
+    return newGroupBooking.id;
+  };
+
+  const updateGroupBooking = (groupBookingId: string, updates: Partial<GroupBooking>) => {
+    setGroupBookings(prev => prev.map(groupBooking => 
+      groupBooking.id === groupBookingId 
+        ? { ...groupBooking, ...updates, modifiedAt: new Date().toISOString() } 
+        : groupBooking
+    ));
+  };
+
+  const deleteGroupBooking = (groupBookingId: string) => {
+    setGroupBookings(prev => prev.filter(groupBooking => groupBooking.id !== groupBookingId));
+  };
+
+  const allocateRoomsForGroup = (groupBookingId: string) => {
+    const groupBooking = groupBookings.find(gb => gb.id === groupBookingId);
+    if (!groupBooking) return;
+
+    // Get available rooms for the booking period
+    const availableRooms = rooms.filter(room => {
+      // Check if room is available (not occupied, maintenance, or out-of-order)
+      if (['occupied', 'maintenance', 'out-of-order'].includes(room.status)) return false;
+      
+      // Check if room is already booked for these dates
+      const isBooked = bookings.some(booking => 
+        booking.roomId === room.id &&
+        booking.status !== 'cancelled' &&
+        !(booking.checkOut <= groupBooking.checkIn || booking.checkIn >= groupBooking.checkOut)
+      );
+      
+      return !isBooked;
+    });
+
+    // Sort rooms by capacity (largest first) for efficient allocation
+    const sortedRooms = availableRooms.sort((a, b) => (b.maxOccupancy || 2) - (a.maxOccupancy || 2));
+    
+    let remainingGuests = groupBooking.totalGuests;
+    const allocation: GroupBooking['roomAllocation'] = [];
+    
+    for (const room of sortedRooms) {
+      if (remainingGuests <= 0) break;
+      
+      const roomCapacity = room.maxOccupancy || 2;
+      const guestsToAssign = Math.min(remainingGuests, roomCapacity);
+      
+      allocation.push({
+        roomId: room.id,
+        roomNumber: room.number,
+        roomType: room.type,
+        maxOccupancy: roomCapacity,
+        assignedGuests: guestsToAssign,
+        guestNames: [] // Will be filled when individual guests are assigned
+      });
+      
+      remainingGuests -= guestsToAssign;
+    }
+    
+    // Update the group booking with room allocation
+    updateGroupBooking(groupBookingId, {
+      roomAllocation: allocation,
+      totalRooms: allocation.length,
+      roomsBlocked: allocation.map(a => a.roomId)
+    });
+    
+    return allocation;
+  };
+
+  const confirmGroupBooking = (groupBookingId: string) => {
+    const groupBooking = groupBookings.find(gb => gb.id === groupBookingId);
+    if (!groupBooking || groupBooking.roomAllocation.length === 0) return;
+
+    // Create individual bookings for each allocated room
+    const newBookings: Booking[] = [];
+    
+    groupBooking.roomAllocation.forEach((allocation, index) => {
+      const booking: Booking = {
+        id: `${groupBookingId}-room-${index + 1}`,
+        guestId: groupBooking.groupLeader?.name || groupBooking.contactPerson, // Temporary - should be actual guest IDs
+        roomId: allocation.roomId,
+        checkIn: groupBooking.checkIn,
+        checkOut: groupBooking.checkOut,
+        status: 'confirmed',
+        totalAmount: (groupBooking.totalAmount / groupBooking.roomAllocation.length),
+        currency: groupBooking.currency,
+        charges: [],
+        adults: allocation.assignedGuests,
+        children: 0,
+        source: 'group-booking',
+        paymentStatus: groupBooking.depositPaid ? 'partial' : 'pending',
+        createdAt: new Date().toISOString(),
+        confirmationNumber: `${groupBooking.blockCode}-${allocation.roomNumber}`,
+        groupBookingId: groupBookingId
+      };
+      newBookings.push(booking);
+    });
+    
+    setBookings(prev => [...prev, ...newBookings]);
+    updateGroupBooking(groupBookingId, { 
+      status: 'confirmed',
+      roomsBooked: groupBooking.roomAllocation.map(a => a.roomId)
+    });
+  };
+
+  const getUpcomingGroupBookings = (days: number = 30) => {
+    const today = new Date();
+    const futureDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+    
+    return groupBookings.filter(gb => {
+      const checkInDate = new Date(gb.checkIn);
+      return checkInDate >= today && checkInDate <= futureDate && gb.status !== 'cancelled';
+    });
+  };
   const addRoomCharge = (bookingId: string, chargeData: Omit<RoomCharge, 'id'>) => {
     const newCharge: RoomCharge = {
       ...chargeData,
@@ -1017,6 +1276,13 @@ export function HotelProvider({ children }: { children: ReactNode }) {
       addBooking,
       updateBookingStatus,
       addRoomCharge,
+      groupBookings,
+      addGroupBooking,
+      updateGroupBooking,
+      deleteGroupBooking,
+      allocateRoomsForGroup,
+      confirmGroupBooking,
+      getUpcomingGroupBookings,
       banquetHalls,
       banquetBookings,
       addBanquetBooking,
