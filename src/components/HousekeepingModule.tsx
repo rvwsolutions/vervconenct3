@@ -416,21 +416,14 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
                     )}
                     
                     <div className="flex items-center space-x-2">
-                      {room.status === 'maintenance' || room.status === 'out-of-order' ? (
+                      {room.status === 'maintenance' ? (
                         <>
                           <button
                             onClick={() => handleMarkAsClean(room.id)}
                             className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
                           >
                             <CheckCircle className="w-4 h-4" />
-                            <span>Mark as Clean</span>
-                          </button>
-                          <button
-                            onClick={() => handleMarkForMaintenance(room.id)}
-                            className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
-                          >
-                            <Clock className="w-4 h-4" />
-                            <span>Maintenance</span>
+                            <span>Fixed & Clean</span>
                           </button>
                           <button
                             onClick={() => handleMarkOutOfOrder(room.id)}
@@ -438,6 +431,23 @@ export function HousekeepingModule({ filters }: HousekeepingModuleProps) {
                           >
                             <X className="w-4 h-4" />
                             <span>Out of Order</span>
+                          </button>
+                        </>
+                      ) : room.status === 'out-of-order' ? (
+                        <>
+                          <button
+                            onClick={() => updateRoomStatus(room.id, 'maintenance')}
+                            className="flex items-center space-x-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
+                          >
+                            <Wrench className="w-4 h-4" />
+                            <span>Back to Maintenance</span>
+                          </button>
+                          <button
+                            onClick={() => handleMarkAsClean(room.id)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Fixed & Clean</span>
                           </button>
                         </>
                       ) : (
