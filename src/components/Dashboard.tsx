@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useHotel } from '../context/HotelContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useBranding } from '../context/BrandingContext';
-import { Bed, Users, Calendar, UtensilsCrossed, Coins, TrendingUp, Clock, CheckCircle, ArrowRight, AlertCircle, Plus, Eye, Home, Wrench, Sparkles, UserCheck, LogIn, LogOut, User, Phone, Mail, MapPin, Star, Timer, UserX, Check as CheckIn, Check as CheckOut, ChevronDown } from 'lucide-react';
+import { Bed, Users, Calendar, UtensilsCrossed, Coins, TrendingUp, Clock, CheckCircle, ArrowRight, AlertCircle, Plus, Eye, Home, Wrench, Sparkles, UserCheck, LogIn, LogOut, User, Phone, Mail, MapPin, Star, Timer, UserX, Check as CheckIn, Check as CheckOut, ChevronDown, X } from 'lucide-react';
 
 interface DashboardProps {
   onModuleChange: (module: string, filter?: any) => void;
@@ -272,7 +272,7 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
             {
               title: 'Room Status',
               value: availableRooms,
-              subtitle: `${stats.cleanRooms} clean • ${stats.dirtyRooms} dirty • ${stats.maintenanceRooms} maintenance • ${stats.outOfOrderRooms} out of order`,
+              subtitle: `${stats.cleanRooms} clean • ${stats.dirtyRooms} dirty • ${stats.maintenanceRooms} maintenance`,
               icon: Home,
               color: 'green',
               onClick: () => onModuleChange('rooms'),
@@ -911,12 +911,12 @@ export function Dashboard({ onModuleChange }: DashboardProps) {
               )}
               {stats.dirtyRooms > 0 && (
                 <button
-                  onClick={() => onModuleChange('housekeeping', { filter: 'dirty' })}
+                  onClick={() => onModuleChange('housekeeping', { filter: 'all' })}
                   className="w-full flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors touch-manipulation active:bg-yellow-200"
                 >
                   <Bed className="w-5 h-5 text-yellow-600 flex-shrink-0" />
                   <span className="text-sm text-yellow-800 flex-1 text-left">
-                    <strong>{stats.dirtyRooms}</strong> room{stats.dirtyRooms !== 1 ? 's' : ''} need{stats.dirtyRooms === 1 ? 's' : ''} cleaning
+                    <strong>{stats.dirtyRooms + stats.maintenanceRooms + stats.outOfOrderRooms}</strong> room{(stats.dirtyRooms + stats.maintenanceRooms + stats.outOfOrderRooms) !== 1 ? 's' : ''} need{(stats.dirtyRooms + stats.maintenanceRooms + stats.outOfOrderRooms) === 1 ? 's' : ''} attention
                   </span>
                   <ArrowRight className="w-4 h-4 text-yellow-600 flex-shrink-0" />
                 </button>
